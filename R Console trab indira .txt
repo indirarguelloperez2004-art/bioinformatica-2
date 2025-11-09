@@ -1,0 +1,184 @@
+
+R version 4.5.1 (2025-06-13) -- "Great Square Root"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin20
+
+R es un software libre y viene sin GARANTIA ALGUNA.
+Usted puede redistribuirlo bajo ciertas circunstancias.
+Escriba 'license()' o 'licence()' para detalles de distribucion.
+
+R es un proyecto colaborativo con muchos contribuyentes.
+Escriba 'contributors()' para obtener más información y
+'citation()' para saber cómo citar R o paquetes de R en publicaciones.
+
+Escriba 'demo()' para demostraciones, 'help()' para el sistema on-line de ayuda,
+o 'help.start()' para abrir el sistema de ayuda HTML con su navegador.
+Escriba 'q()' para salir de R.
+
+[R.app GUI 1.82 (8536) x86_64-apple-darwin20]
+
+[Espacio de trabajo restablecido desde /Users/indiraarguelloperez/.RData]
+> setwd("~/Desktop")
+> getwd()
+[1] "/Users/indiraarguelloperez/Desktop"
+> datos <- read.csv("datos_biomed.csv", header = TRUE, sep = ",")
+> head(datos)
+  ID Tratamiento Glucosa Presion Colesterol
+1  1    FarmacoB   113.7   126.8      201.4
+2  2     Placebo   113.3   117.9      157.8
+3  3    FarmacoB   118.4   115.6      213.9
+4  4    FarmacoB   116.3   141.9      220.3
+5  5     Placebo    96.9   133.0      197.5
+6  6     Placebo    90.6   111.3      223.0
+> str(datos) 
+'data.frame':	100 obs. of  5 variables:
+ $ ID         : int  1 2 3 4 5 6 7 8 9 10 ...
+ $ Tratamiento: chr  "FarmacoB" "Placebo" "FarmacoB" "FarmacoB" ...
+ $ Glucosa    : num  113.7 113.3 118.4 116.3 96.9 ...
+ $ Presion    : num  127 118 116 142 133 ...
+ $ Colesterol : num  201 158 214 220 198 ...
+> summary(datos) 
+       ID         Tratamiento           Glucosa          Presion        Colesterol   
+ Min.   :  1.00   Length:100         Min.   : 69.70   Min.   :103.3   Min.   :149.3  
+ 1st Qu.: 25.75   Class :character   1st Qu.: 97.38   1st Qu.:118.3   1st Qu.:183.7  
+ Median : 50.50   Mode  :character   Median :106.45   Median :126.6   Median :199.4  
+ Mean   : 50.50                      Mean   :106.51   Mean   :126.7   Mean   :199.9  
+ 3rd Qu.: 75.25                      3rd Qu.:115.62   3rd Qu.:134.1   3rd Qu.:216.3  
+ Max.   :100.00                      Max.   :150.60   Max.   :153.9   Max.   :252.0  
+> datos$Tratamiento <- as.factor(datos$Tratamiento)
+> library(ggplot2)
+> library(dplyr)
+
+Adjuntando el paquete: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> library(tidyr)
+> datos_largos <- datos %>%
++   pivot_longer(cols = c(Glucosa, Presion, Colesterol),
++                names_to = "Variable",
++                values_to = "Valor")
+> 
+> 
+> head(datos_largos)
+# A tibble: 6 × 4
+     ID Tratamiento Variable   Valor
+  <int> <fct>       <chr>      <dbl>
+1     1 FarmacoB    Glucosa     114.
+2     1 FarmacoB    Presion     127.
+3     1 FarmacoB    Colesterol  201.
+4     2 Placebo     Glucosa     113.
+5     2 Placebo     Presion     118.
+6     2 Placebo     Colesterol  158.
+> ggplot(datos_largos, aes(x = Tratamiento, y = Valor, fill = Tratamiento)) +
++   geom_boxplot() +
++   facet_wrap(~ Variable, scales = "free_y") +
++   labs(title = "Boxplots por tratamiento",
++        x = "Tratamiento", y = "Valor") +
++   theme_minimal()
+> ggplot(datos, aes(x = Tratamiento, y = Glucosa, fill = Tratamiento)) +
++   geom_violin(trim = FALSE) +
++   geom_boxplot(width = 0.1, fill = "white") +
++   labs(title = "Violin plot de glucosa por tratamiento",
++        x = "Tratamiento", y = "Glucosa") +
++   theme_minimal()
+> ggplot(datos, aes(x = Glucosa, y = Presion, color = Tratamiento)) +
++   geom_point(size = 2) +
++   labs(title = "Glucosa vs Presión por tratamiento",
++        x = "Glucosa", y = "Presión") +
++   theme_minimal() +
++   theme(legend.position = "bottom")
+> ggplot(datos, aes(x = Colesterol, y = Presion)) +
++   geom_point(color = "steelblue") +
++   facet_grid(~ Tratamiento) +
++   labs(title = "Colesterol vs Presión por tratamiento",
++        x = "Colesterol", y = "Presión") +
++   theme_minimal()
+> datos_largos <- datos %>%
++   pivot_longer(cols = c(Glucosa, Presion, Colesterol),
++                names_to = "Variable", values_to = "Valor")
+> 
+> ggplot(datos_largos, aes(x = Valor)) +
++   geom_histogram(bins = 20, fill = "skyblue", color = "black") +
++   facet_wrap(~ Variable, scales = "free") +
++   labs(title = "Histogramas de cada variable",
++        x = "Valor", y = "Frecuencia") +
++   theme_minimal()
+> datos$Tratamiento <- as.factor(datos$Tratamiento)
+> levels(datos$Tratamiento)
+[1] "FarmacoA" "FarmacoB" "Placebo" 
+> aggregate(Glucosa ~ Tratamiento, data = datos,
++           FUN = function(y) c(media = mean(y), sd = sd(y)))
+  Tratamiento Glucosa.media Glucosa.sd
+1    FarmacoA     110.47500   13.58309
+2    FarmacoB     105.58387   12.15064
+3     Placebo     103.04545   17.18486
+> 
+> farmacoB <- subset(datos, Tratamiento == "FarmacoB")
+> placebo  <- subset(datos, Tratamiento == "Placebo")
+> 
+> head(farmacoB)
+   ID Tratamiento Glucosa Presion Colesterol
+1   1    FarmacoB   113.7   126.8      201.4
+3   3    FarmacoB   118.4   115.6      213.9
+4   4    FarmacoB   116.3   141.9      220.3
+7   7    FarmacoB    82.4   136.2      168.5
+9   9    FarmacoB   102.3   132.3      180.4
+10 10    FarmacoB    98.8   138.5      169.4
+> head(placebo)
+   ID Tratamiento Glucosa Presion Colesterol
+2   2     Placebo   113.3   117.9      157.8
+5   5     Placebo    96.9   133.0      197.5
+6   6     Placebo    90.6   111.3      223.0
+13 13     Placebo   112.5   130.5      189.6
+16 16     Placebo    98.9   110.5      187.9
+21 21     Placebo   150.6   124.2      187.4
+> by(datos$Glucosa, datos$Tratamiento, shapiro.test)
+datos$Tratamiento: FarmacoA
+
+	Shapiro-Wilk normality test
+
+data:  dd[x, ]
+W = 0.9648, p-value = 0.3008
+
+----------------------------------------------------------------------------------------------------------------------------- 
+datos$Tratamiento: FarmacoB
+
+	Shapiro-Wilk normality test
+
+data:  dd[x, ]
+W = 0.96578, p-value = 0.411
+
+----------------------------------------------------------------------------------------------------------------------------- 
+datos$Tratamiento: Placebo
+
+	Shapiro-Wilk normality test
+
+data:  dd[x, ]
+W = 0.967, p-value = 0.402
+
+> anova_glu <- aov(Glucosa ~ Tratamiento, data = datos)
+> summary(anova_glu)
+            Df Sum Sq Mean Sq F value Pr(>F)
+Tratamiento  2    989   494.3   2.358    0.1
+Residuals   97  20337   209.7               
+> TukeyHSD(anova_glu)
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = Glucosa ~ Tratamiento, data = datos)
+
+$Tratamiento
+                       diff       lwr       upr     p adj
+FarmacoB-FarmacoA -4.891129 -13.33572 3.5534658 0.3560476
+Placebo-FarmacoA  -7.429545 -15.73551 0.8764146 0.0892753
+Placebo-FarmacoB  -2.538416 -11.15878 6.0819491 0.7635254
+
+2025-11-07 18:18:59.091 R[3449:113286] +[CATransaction synchronize] called within transaction
+> 
